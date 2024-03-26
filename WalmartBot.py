@@ -2,7 +2,6 @@
 #This will not run on online IDE 
 import requests 
 from bs4 import BeautifulSoup 
-import json
 from fakeUserAgent import generate_agent
 class WalmartBot:
     def __init__(self):
@@ -20,18 +19,18 @@ class WalmartBot:
             }
             return json
     def pull_data(self, query, pageNumber):
-        page = 3
         scraper = self.make_request(f"search?q={query}&page={pageNumber}")
         product_titles =scraper.findAll('span', attrs = {"class":'normal dark-gray mb0 mt1 lh-title f6 f5-l lh-copy'})
         prices_whole_number =scraper.findAll('span', attrs = {"class":'f2'})
         prices_decimal_point =scraper.findAll('span', attrs = {"class":'f6 f5-l'})[1::2]
-        product_link =scraper.findAll('a', attrs = {"class":'absolute w-100 h-100 z-1 hide-sibling-opacity'})
-        json = {
-            "products": []
-        }
+        product_link =scraper.find_all('a', class_= 'absolute w-100 h-100 z-1 hide-sibling-opacity')
+        product_list = []
         for product, price_whole, price_decimal, link in zip(product_titles, prices_whole_number, prices_decimal_point, product_link):
             full_price = f"${price_whole.text}.{price_decimal.text}"
-            full_link = f"https://www.walmart.com/{link['href']}"
+            if len(link['href']) < 200:
+                full_link = f"https://www.walmart.com/{link['href']}"
+            else: 
+                full_link = link['href']
             monthly_payment = "/month" in full_price
             data = {
                 "Product Title": product.text,
@@ -39,18 +38,32 @@ class WalmartBot:
                 "Product Link": full_link,
                 "monthly_payment": monthly_payment
             }
-            json["products"].append(data)
-        return json
+            product_list.append(data)
+        return product_list
     def scrape_pages(self, query,pageTotal):
         page = 1
         if pageTotal > 10: pageTotal = 10
         json = {
-            "All Products": []
+            "Inventory": []
         }
         while page <= pageTotal:
-            pageData = {
-                f"Page {page}": [self.pull_data(query, page)]
-            }
-            json["All Products"].append(pageData)
+            json["Inventory"].append(self.pull_data(query, page))
             page +=1
         return json
+    def merge_prep(self):
+        i = 0
+        merge_prep = []
+        page_number = 4
+        products = self.scrape_pages("Iphone", page_number)["Inventory"]
+        while i < page_number:
+            j = 0
+            page_list = products[i]
+            while j < 9:
+                product = page_list[j]
+                merge_prep.append(product)
+                j +=1
+            i +=1
+        return merge_prep
+
+
+
