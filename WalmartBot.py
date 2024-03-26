@@ -3,6 +3,7 @@
 import requests 
 from bs4 import BeautifulSoup 
 from fakeUserAgent import generate_agent
+from algorithms import partition, quickSort
 class WalmartBot:
     def __init__(self):
         self.base_url =  "https://www.walmart.com/"
@@ -50,20 +51,35 @@ class WalmartBot:
             json["Inventory"].append(self.pull_data(query, page))
             page +=1
         return json
-    def merge_prep(self):
+    def merge_prep(self, productData, pageNumber):
         i = 0
         merge_prep = []
-        page_number = 4
-        products = self.scrape_pages("Iphone", page_number)["Inventory"]
-        while i < page_number:
+        products = productData["Inventory"]
+        while i < pageNumber:
             j = 0
             page_list = products[i]
             while j < 9:
                 product = page_list[j]
-                merge_prep.append(product)
+                if not product["monthly_payment"]:
+                    product["Product Price"] = float(product["Product Price"][1:])
+                    merge_prep.append(product)
                 j +=1
             i +=1
         return merge_prep
+    def sorted_products(self, productData, pageNumber):
+        productArray = self.merge_prep(productData, pageNumber) 
+        length = len(productArray) - 1
+        quickSort(productArray, 0, length)       
+        for product in productArray:
+            product["Product Price"] = f"${product['Product Price']}"
+        json = {
+            "Sorted Products": productArray
+        }
+        return json
+
+walmart_bot = WalmartBot()  
+productData = walmart_bot.scrape_pages("Airpods", 3)
+sortedData = walmart_bot.sorted_products(productData, 3)
 
 
 
