@@ -1,6 +1,6 @@
-
-#This will not run on online IDE 
+ 
 import requests 
+import time
 from bs4 import BeautifulSoup 
 from fakeUserAgent import generate_agent
 from algorithms import quickSort
@@ -9,7 +9,7 @@ class WalmartBot:
         self.base_url =  "https://www.walmart.com/"
     def make_request(self, searchQuery):
         link =f"{self.base_url}{searchQuery}"
-        Headers = ({'User-Agent': "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.106 Safari/537.36 OPR/38.0.2220.41"})
+        Headers = ({'User-Agent': generate_agent()})
         response = requests.get(link, headers=Headers)
         if response.status_code == 200:
             soup = BeautifulSoup(response.content, 'html5lib')
@@ -21,7 +21,6 @@ class WalmartBot:
             return json
     def pull_data(self, query, pageNumber):
         scraper = self.make_request(f"search?q={query}&page={pageNumber}")
-        print(scraper)
         product_titles =scraper.findAll('span', attrs = {"class":'normal dark-gray mb0 mt1 lh-title f6 f5-l lh-copy'})
         prices_whole_number =scraper.findAll('span', attrs = {"class":'f2'})
         prices_decimal_point =scraper.findAll('span', attrs = {"class":'f6 f5-l'})[1::2]
@@ -49,10 +48,7 @@ class WalmartBot:
             "Inventory": []
         }
         while page <= pageTotal:
-            if priceData:
-                json["Inventory"].append(self.pull_data(query, page))
-            else:
-                json["Inventory"].append(self.pull_reviews(query, page))
+            json["Inventory"].append(self.pull_data(query, page))
             page +=1
         return json
     def merge_prep(self, productData, pageNumber):
@@ -79,28 +75,5 @@ class WalmartBot:
         json = {
             "Sorted Products": productArray
         }
-        return json
-    def pull_reviews(self, query, pageNumber):
-        scraper = self.make_request(f"search?q={query}&page={pageNumber}")
-        pageLinks = scraper.findAll('a', attrs = {"class":"absolute w-100 h-100 z-1 hide-sibling-opacity"})
-        json = {
-            "Product Reviews": []
-        } 
-        for link in pageLinks: 
-            link_identifier = link["link-identifier"]
-            product_titles =scraper.findAll('span', attrs = {"class":'normal dark-gray mb0 mt1 lh-title f6 f5-l lh-copy'})
-            review_scraper = self.make_request(f"/reviews/product/{link_identifier}")
-            reviewStars = review_scraper.findAll('span', attrs = {"class":"w_iUH7"})
-            reviewTitle = review_scraper.findAll('h3', attrs = {"class":"w_kV33 w_Sl3f w_mvVb f5 b"})
-            reviewDescription = review_scraper.findAll('span', attrs = {"class":"tl-m mb3 db-m"})
-            for star, title, description, product in zip(reviewStars[8:], reviewTitle[2:], reviewDescription[2:], product_titles):
-                productData = {
-                    "Product Title": product.text,
-                    "Review Rating": star.text,
-                    "Product Title": title.text,
-                    "Product Description": description.text
-                }
-            
-                json["Product Reviews"].append(productData)
         return json
 
