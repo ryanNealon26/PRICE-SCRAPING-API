@@ -41,7 +41,7 @@ class WalmartBot:
             }
             product_list.append(data)
         return product_list
-    def scrape_pages(self, query,pageTotal, priceData):
+    def scrape_pages(self, query,pageTotal):
         page = 1
         if pageTotal > 10: pageTotal = 10
         json = {
@@ -58,10 +58,10 @@ class WalmartBot:
         while i < pageNumber:
             j = 0
             page_list = products[i]
-            while j < 9:
+            while j < len(page_list):
                 product = page_list[j]
                 if not product["monthly_payment"]:
-                    product["Product Price"] = float(product["Product Price"][1:])
+                    product["Product Price"] = float(product["Product Price"].replace(",", "")[1:])
                     merge_prep.append(product)
                 j +=1
             i +=1

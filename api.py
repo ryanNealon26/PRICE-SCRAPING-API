@@ -23,6 +23,23 @@ def read_item(query: str, pageTotal: int):
 
 @app.get("/trulia-homes/{state}/{city}")
 def read_item(state: str, city: str):
-    return trulia_bot.pull_house_data(state, city)
+    data =  trulia_bot.pull_house_data(state, city, 1)
+    while data["Page 1"] == []:
+        data = trulia_bot.pull_house_data(state, city, 1)
+    return data
 
+@app.get("/trulia-homes/{state}/{city}/{page}")
+def read_item(state: str, city: str, page: int):
+    try:
+        data = trulia_bot.scrape_pages(state, city, page)
+        return data
+    except:
+        return {"Error Message": "The api failed to pull the data, please make sure that the spelling for the state abbreviation and city name are correct."}
 
+@app.get("/trulia-images/{state}/{city}")
+def read_item(state: str, city: str):
+    images = trulia_bot.scrape_images(state, city)
+    print(images["Images"])
+    while images["Images"] == []:
+        images = trulia_bot.scrape_images(state, city)
+    return images
