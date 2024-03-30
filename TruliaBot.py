@@ -8,10 +8,10 @@ class TruliaBot:
         self.base_url = "https://www.trulia.com"
     def make_request(self, searchQuery):
         link =f"{self.base_url}{searchQuery}"
-        Headers = ({'User-Agent':"Mozilla/5.0 (Linux; Android 13; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36"})
+        Headers = ({'User-Agent': "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36"})
         proxies ={
-            'http': "http://72.10.160.91",
-            'http': "http://117.74.65.207",
+            'http': "http://141.193.213.11",
+            'http': "http://188.114.98.234",
         }
         response = requests.get(link, headers=Headers, proxies=proxies)
         if response.status_code == 200:
@@ -22,8 +22,11 @@ class TruliaBot:
                 "Error Message": f"Failed to Pull Data From {link}, return responce code of {response.status_code}"
             }
             return json
-    def pull_house_data(self, state, city, page):
-        scraper = self.make_request(f"/{state}/{city}/{page}_p/")
+    def pull_house_data(self, state, city, page, isRental):
+        if isRental:
+            scraper = self.make_request(f"/for_rent/{city},{state}/{page}_p/")
+        else:
+            scraper = self.make_request(f"/{state}/{city}/{page}_p/")
         prices =scraper.findAll('div', attrs = {"data-testid":'property-price'})
         addresses=scraper.findAll('div', attrs = {"data-testid":'property-address'})
         beds = scraper.findAll('div', attrs = {"data-testid":'property-beds'})
@@ -63,12 +66,19 @@ class TruliaBot:
                 }
                 json["Images"].append(data)
         return json
-    def scrape_pages(self, state, city, pageNumber):
-        scraper = self.make_request(f"/{state}/{city}/")
+    def scrape_pages(self, state, city, pageNumber, isRental):
+        if isRental:
+            scraper = self.make_request(f"/for_rent/{city},{state}/")
+        else:
+            scraper = self.make_request(f"/{state}/{city}/")
         totalHouses = scraper.findAll('h2', attrs = {"class":'sc-259f2640-0 bcPATd'})
-        total = ""
+        print(scraper)
+        total = 0
         for house in totalHouses:
-            total = int(house.text.replace(" homes ", ""))
+            if isRental:
+                total = int(house.text.replace(" rentals ", ""))
+            else:
+                total = int(house.text.replace(" homes ", ""))
         if total<40:
             pageNumber = 1
         if pageNumber > round(total/40):
@@ -78,10 +88,12 @@ class TruliaBot:
             "Items": []
         }
         while page <=pageNumber:
-            data = self.pull_house_data(state, city, page)
+            data = self.pull_house_data(state, city, page, isRental)
             while data[f"Page {page}"] == []:
-                data = self.pull_house_data(state, city, page)
+                data = self.pull_house_data(state, city, page, isRental)
             json["Items"].append(data)
             page +=1
         return json
-        
+trulia = TruliaBot()
+
+print(trulia.scrape_pages("ma", "cambridge", 1, True))
