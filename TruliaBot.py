@@ -8,11 +8,10 @@ class TruliaBot:
         self.base_url = "https://www.trulia.com"
     def make_request(self, searchQuery):
         link =f"{self.base_url}{searchQuery}"
-        Headers = ({'User-Agent': "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.85 Safari/537.36"})
-        proxies ={
-            'http': "http://141.193.213.11",
-            'http': "http://188.114.98.234",
+        proxies = {
+            'http': '103.1.93.184'
         }
+        Headers = ({'User-Agent': "Mozilla/5.0 (Linux; Android 13; Pixel 6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36"})
         response = requests.get(link, headers=Headers, proxies=proxies)
         if response.status_code == 200:
             soup = BeautifulSoup(response.content, 'html5lib')
@@ -72,7 +71,6 @@ class TruliaBot:
         else:
             scraper = self.make_request(f"/{state}/{city}/")
         totalHouses = scraper.findAll('h2', attrs = {"class":'sc-259f2640-0 bcPATd'})
-        print(scraper)
         total = 0
         for house in totalHouses:
             if isRental:
@@ -94,6 +92,5 @@ class TruliaBot:
             json["Items"].append(data)
             page +=1
         return json
-trulia = TruliaBot()
-
-print(trulia.scrape_pages("ma", "cambridge", 1, True))
+realtor = requests.get("https://www.rent.com/massachusetts/walpole-apartments")
+print(realtor)
