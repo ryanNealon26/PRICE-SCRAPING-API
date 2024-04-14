@@ -38,7 +38,8 @@ class WalmartBot:
         product_images = scraper.find_all('img',  attrs = {"data-testid":'productTileImage'})
         product_list = []
         for product, price_whole, price_decimal, link, image in zip(product_titles, prices_whole_number, prices_decimal_point, fixedLinks, product_images):
-            full_price = f"${price_whole.text}.{price_decimal.text}"
+            full_price = f"${price_whole.text}.{price_decimal.text}"            
+            full_price = full_price.replace(",", "")
             if len(link['href']) < 200:
                 full_link = f"https://www.walmart.com/{link['href']}"
             else: 
@@ -106,6 +107,3 @@ class WalmartBot:
         for review, star in zip(reviews[1:], stars[8:]):
             print(f"{review.text} || {star.text}")
 
-walmart = WalmartBot()
-
-walmart.product_reviews()

@@ -1,11 +1,11 @@
 from typing import Union
 from fastapi import FastAPI
 from WalmartBot import WalmartBot
-from TruliaBot import TruliaBot
+from RemaxBot import ReMaxBot
 app = FastAPI()
 
 walmart_bot = WalmartBot()
-trulia_bot = TruliaBot()
+remax_bot = RemaxBot()
 @app.get("/")
 def read_root():
     return {"Hello": "User"}
@@ -21,32 +21,3 @@ def read_item(query: str, pageTotal: int):
     sortedData = walmart_bot.sorted_products(productData, pageTotal)
     return sortedData
 
-@app.get("/trulia-homes/{state}/{city}")
-def read_item(state: str, city: str):
-    data =  trulia_bot.pull_house_data(state, city, 1, False)
-    while data["Page 1"] == []:
-        data = trulia_bot.pull_house_data(state, city, 1, False)
-    return data
-
-@app.get("/trulia-homes/{state}/{city}/{page}")
-def read_item(state: str, city: str, page: int):
-    try:
-        data = trulia_bot.scrape_pages(state, city, page, False)
-        return data
-    except:
-        return {"Error Message": "The api failed to pull the data, please make sure that the spelling for the state abbreviation and city name are correct."}
-@app.get("/trulia-rental/{state}/{city}/{page}")
-def read_item(state: str, city: str, page: int):
-    try:
-        data = trulia_bot.scrape_pages(state, city, page, True)
-        return data
-    except:
-        return {"Error Message": "The api failed to pull the data, please make sure that the spelling for the state abbreviation and city name are correct."}
-
-@app.get("/trulia-images/{state}/{city}")
-def read_item(state: str, city: str):
-    images = trulia_bot.scrape_images(state, city)
-    print(images["Images"])
-    while images["Images"] == []:
-        images = trulia_bot.scrape_images(state, city)
-    return images
