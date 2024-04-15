@@ -51,6 +51,23 @@ class RocketHomesBot:
             }
             propertyData.append(data)
         return propertyData
-rocket = RocketHomesBot()
-
-print(rocket.pull_house_data("ma", "walpole", 1))
+    def scrape_pages(self, state, city, pages):
+        pageNumber = 1
+        scraper = self.make_request(f"{state}/{city}?page=1")
+        json = {
+            "Property Data": []
+        }
+        total_houses =scraper.findAll('span', attrs = {"id":'location-title-home-count'})
+        for total in total_houses:
+            total_data = int(total.text.replace(" results", "").replace(",", ""))
+        if pages > total_data:
+            pages = total_data
+        if pages > 10: 
+            pages = 10
+        while pageNumber <= pages:
+            housing_data = self.pull_house_data(state, city, pageNumber)
+            for data in housing_data:
+                json["Property Data"].append(data)
+            pageNumber += 1
+        print(len(json["Property Data"]))
+        return json

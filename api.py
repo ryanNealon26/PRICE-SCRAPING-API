@@ -1,11 +1,11 @@
 from typing import Union
 from fastapi import FastAPI
 from WalmartBot import WalmartBot
-from RemaxBot import ReMaxBot
+from RocketHomesBot import RocketHomesBot
 app = FastAPI()
 
 walmart_bot = WalmartBot()
-remax_bot = RemaxBot()
+rocket_bot = RocketHomesBot()
 @app.get("/")
 def read_root():
     return {"Hello": "User"}
@@ -20,4 +20,7 @@ def read_item(query: str, pageTotal: int):
     productData = walmart_bot.scrape_pages(query, pageTotal)
     sortedData = walmart_bot.sorted_products(productData, pageTotal)
     return sortedData
-
+@app.get("/rocket-homes/{state}/{city}/{pageTotal}")
+def read_item(state: str, city: str, pageTotal: int):
+    housing_data = rocket_bot.scrape_pages(state, city, pageTotal)
+    return housing_data
