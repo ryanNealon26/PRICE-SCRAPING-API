@@ -2,6 +2,7 @@ import requests
 import json
 from bs4 import BeautifulSoup 
 from fakeUserAgent import generate_agent, random_proxy
+from algorithms import mergeSort
 
 class RocketHomesBot:
     def __init__(self):
@@ -70,4 +71,5 @@ class RocketHomesBot:
                 json["Property Data"].append(data)
             pageNumber += 1
         print(len(json["Property Data"]))
+        mergeSort(json["Property Data"])
         return json
