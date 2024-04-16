@@ -2,6 +2,12 @@ from typing import Union
 from fastapi import FastAPI
 from WalmartBot import WalmartBot
 from RocketHomesBot import RocketHomesBot
+from fastapi.responses import FileResponse
+import pandas as pd
+from io import BytesIO
+
+
+import os
 app = FastAPI()
 
 walmart_bot = WalmartBot()

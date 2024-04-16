@@ -1,9 +1,8 @@
 import requests 
 import json
 from bs4 import BeautifulSoup 
-from fakeUserAgent import generate_agent, random_proxy
+from fakeUserAgent import generate_agent
 from algorithms import mergeSort
-
 class RocketHomesBot:
     def __init__(self):
         self.base_url = "https://www.rockethomes.com/"
@@ -23,7 +22,7 @@ class RocketHomesBot:
             }
             return json
     def pull_house_data(self, state, city, pageNumber):
-        scraper = self.make_request(f"{state}/{city}?page={pageNumber}")
+        scraper = self.make_request(f"{state}/{city}?home-type=house&page={pageNumber}")
         house_prices =scraper.findAll('p', attrs = {"data-testid":'list-price'})
         addresses =scraper.findAll('p', attrs = {"data-testid":'address'})
         property_size =scraper.findAll('p', attrs = {"data-testid":'property-size'})
@@ -32,6 +31,7 @@ class RocketHomesBot:
         property_image =scraper.find_all('img', attrs = {"style":'height:264px'})
         property_links = scraper.findAll('a', attrs={"style":"height:264px"})
         propertyData = []
+        print(f"{len(addresses)} || {len(property_size)}")
         for price, address, size, bed, bath, image, link in zip(house_prices, addresses, property_size, beds, baths, property_image, property_links):
             if image == property_image[0]:
                 image_data = image['src']
@@ -41,10 +41,13 @@ class RocketHomesBot:
                 bath_data = bath.text
             else:
                 bath_data = f"{bath.text}ba"
+            size_data = size.text
+            if len(property_size) != len(addresses):
+                size_data = "NA"
             data = {
                 "Address": address.text,
                 "Property Price": price.text,
-                "Square Feet": size.text,
+                "Square Feet": size_data,
                 "Bedrooms": f"{bed.text}bd",
                 "Bathrooms": bath_data,
                 "Property Photo": image_data, 
@@ -58,7 +61,10 @@ class RocketHomesBot:
         json = {
             "Property Data": []
         }
-        total_houses =scraper.findAll('span', attrs = {"id":'location-title-home-count'})
+        try:
+            total_houses =scraper.findAll('span', attrs = {"id":'location-title-home-count'})
+        except:
+            total_houses =scraper.findAll('span', attrs = {"id":'location-listings-title-home-count'})
         for total in total_houses:
             total_data = int(total.text.replace(" results", "").replace(",", ""))
         if pages > total_data:
@@ -70,6 +76,5 @@ class RocketHomesBot:
             for data in housing_data:
                 json["Property Data"].append(data)
             pageNumber += 1
-        print(len(json["Property Data"]))
         mergeSort(json["Property Data"])
         return json

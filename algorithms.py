@@ -8,7 +8,7 @@ def partition(productArray, low, high):
                 (productArray[i], productArray[j]) = (productArray[j], productArray[i])
         (productArray[i + 1], productArray[high]) = (productArray[high], productArray[i + 1])
         return i + 1
-def quickSort(array, low, high, isProperty):
+def quickSort(array, low, high):
     if low < high:
         pi = partition(array, low, high)
         # recursive call on the left of pivot
@@ -34,7 +34,6 @@ def  merge(h, m, U, V, properties):
 
      
 def mergeSort(properties):
-    print(properties)
     n = len(properties)
     if n > 1:
         h = n // 2
