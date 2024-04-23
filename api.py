@@ -1,17 +1,18 @@
 from typing import Union
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 from WalmartBot import WalmartBot
 from RocketHomesBot import RocketHomesBot
-from fastapi.responses import FileResponse
-import pandas as pd
-from io import BytesIO
-
-
-import os
+from LlamaAssistant import LlamaAssistant
 app = FastAPI()
+
 
 walmart_bot = WalmartBot()
 rocket_bot = RocketHomesBot()
+
+ai_assistant = LlamaAssistant()
+
+#fast api websockets
+
 @app.get("/")
 def read_root():
     return {"Hello": "User"}
@@ -30,3 +31,12 @@ def read_item(query: str, pageTotal: int):
 def read_item(state: str, city: str, pageTotal: int):
     housing_data = rocket_bot.scrape_pages(state, city, pageTotal)
     return housing_data
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    while True:
+        promptData = await websocket.receive_text()
+        response = ai_assistant.generate_answer(promptData)
+        print(response)
+        await websocket.send_text(response)
