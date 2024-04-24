@@ -25,14 +25,15 @@ class LlamaAssistant:
         return response
     def filter_response(self, response):
         ai_response = response.json()['choices'][0]["message"]["content"]
-        ai_response = ai_response.replace("*", ",<br></br>")
+        ai_response = ai_response.replace("<", "").replace(">","")
+        ai_response = ai_response.replace("\n", "<br></br>")
         return ai_response
     def analyze_housing_data(self, state, city, preferences):
         rocket_bot = RocketHomesBot()
         housing_data = rocket_bot.scrape_pages(state, city, 1)
         #housing_data is json
         housing_data_json = json.dumps(housing_data)
-        prompt = f"Analyze the following json data {housing_data_json} and choose some (at most 5) of the properties that fit the specified preferences. Preferences: {preferences}"
+        prompt = f"Analyze the following json data {housing_data_json} and choose some (at most 3) of the properties that fit the specified preferences. Return the list and include all of the data in the json including links. Preferences: {preferences}"
         api_request_json = {
             "model": "llama3-70b",
             "messages": [
@@ -42,7 +43,7 @@ class LlamaAssistant:
         }
         response = self.llama.run(api_request_json)
         response = self.filter_response(response)
-        return response.json()['choices'][0]["message"]["content"]
+        return response
 
 
 
