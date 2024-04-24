@@ -37,6 +37,18 @@ async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
     while True:
         promptData = await websocket.receive_text()
-        response = ai_assistant.generate_answer(promptData)
-        print(response)
+        promptSel = await websocket.receive_text()
+        print(promptSel)
+        response = ai_assistant.generate_answer(promptData, promptSel)
         await websocket.send_text(response)
+
+@app.websocket("/ai")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    while True:
+        state = await websocket.receive_text()
+        city = await websocket.receive_text()
+        promptData = await websocket.receive_text()
+        response = ai_assistant.analyze_housing_data(state, city, promptData)
+        await websocket.send_text(response)
+        
