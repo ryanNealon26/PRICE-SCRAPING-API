@@ -3,6 +3,8 @@ from fastapi import FastAPI, WebSocket
 from WalmartBot import WalmartBot
 from RocketHomesBot import RocketHomesBot
 from LlamaAssistant import LlamaAssistant
+import pandas as pd
+from fastapi.responses import FileResponse
 app = FastAPI()
 
 
@@ -31,6 +33,14 @@ def read_item(query: str, pageTotal: int):
 def read_item(state: str, city: str, pageTotal: int):
     housing_data = rocket_bot.scrape_pages(state, city, pageTotal)
     return housing_data
+
+@app.get("/rocket-homes/excel/{state}/{city}/{pageTotal}")
+def read_item(state: str, city: str, pageTotal: int):
+    json_data = rocket_bot.scrape_pages(state, city, pageTotal)
+    excel_name = f"{city}_{state}_page{pageTotal}.xlsx"
+    pd.DataFrame(json_data["Property Data"]).to_excel(excel_name, index=True)
+    return FileResponse(excel_name)
+
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):

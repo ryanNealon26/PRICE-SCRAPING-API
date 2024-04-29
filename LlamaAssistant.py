@@ -14,7 +14,6 @@ class LlamaAssistant:
             prompt = f"Tell me about locations the user asks for. Include information such as population, common weather, price ranges, and a general variety of data that a home buyer would want to know about a location. Location Begin Here: {preferences}"
         # Build the API request
         api_request_json = {
-            "model": "llama3-70b",
             "messages": [
                 {"role": "user", "content": prompt},
                 
@@ -26,7 +25,7 @@ class LlamaAssistant:
     def filter_response(self, response):
         ai_response = response.json()['choices'][0]["message"]["content"]
         ai_response = ai_response.replace("<", "").replace(">","")
-        ai_response = ai_response.replace("\n", "<br></br>")
+        ai_response = ai_response.replace("\n", "<br></br>").replace("<br></br><br></br>", "<br></br>")
         return ai_response
     def analyze_housing_data(self, state, city, preferences):
         rocket_bot = RocketHomesBot()
@@ -35,7 +34,6 @@ class LlamaAssistant:
         housing_data_json = json.dumps(housing_data)
         prompt = f"Analyze the following json data {housing_data_json} and choose some (at most 3) of the properties that fit the specified preferences. Return the list and include all of the data in the json including links. Preferences: {preferences}"
         api_request_json = {
-            "model": "llama3-70b",
             "messages": [
                 {"role": "user", "content": prompt},
                 
@@ -44,6 +42,3 @@ class LlamaAssistant:
         response = self.llama.run(api_request_json)
         response = self.filter_response(response)
         return response
-
-
-

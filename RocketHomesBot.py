@@ -3,6 +3,7 @@ import json
 from bs4 import BeautifulSoup 
 from fakeUserAgent import generate_agent
 from algorithms import mergeSort
+import pandas as pd
 class RocketHomesBot:
     def __init__(self):
         self.base_url = "https://www.rockethomes.com/"
@@ -66,7 +67,7 @@ class RocketHomesBot:
         except:
             total_houses =scraper.findAll('span', attrs = {"id":'location-listings-title-home-count'})
         for total in total_houses:
-            total_data = int(total.text.replace(" results", "").replace(",", ""))
+            total_data = int(total.text.replace(" results", "").replace(",", "").replace(" Results", ""))
         if pages > total_data:
             pages = total_data
         if pages > 10: 
